@@ -509,3 +509,28 @@ br
     ]);
   });
 });
+
+describe('ReDOS in bundled builds', () => {
+  const bundles = {
+    'lib/marked.js': require('../../lib/marked.js'),
+    'marked.min.js': require('../../marked.min.js')
+  };
+
+  const inputs = {
+    'link reference definitions': `[x]:${' '.repeat(1500)}x ${' '.repeat(1500)} x`,
+    'reference links': '[x]: x\n\n[' + '\\[\\]('.repeat(30) + '['
+  };
+
+  Object.keys(bundles).forEach((file) => {
+    Object.keys(inputs).forEach((name) => {
+      it(`${file} should parse ${name} in linear time`, () => {
+        const markdown = inputs[name];
+        const before = process.hrtime();
+        const html = bundles[file](markdown);
+        const elapsed = process.hrtime(before);
+        expect(elapsed[0]).toBe(0);
+        expect(html).toBe(marked(markdown));
+      });
+    });
+  });
+});
